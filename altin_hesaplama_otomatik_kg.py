@@ -6,7 +6,7 @@ st.set_page_config(page_title="Altın Hesaplama", layout="centered")
 
 # Logo göster
 logo = Image.open("Siyah-PNG.png")
-st.image(logo, use_column_width=True)
+st.image(logo, use_container_width=True)
 
 st.title("Altın Hesaplama")
 
