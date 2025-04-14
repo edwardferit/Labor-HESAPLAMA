@@ -14,19 +14,30 @@ except:
 
 st.title("Altın Hesaplama")
 
-# USD/KG verisini çeken fonksiyon
+# USD/KG verisini çeken fonksiyon (debug'lu)
 @st.cache_data(ttl=300)
 def get_usd_kg_birebir():
     try:
         url = "https://api.exchangerate.host/convert?from=XAU&to=USD"
-        response = requests.get(url).json()
-        usd_per_ounce = response["result"]
+        response = requests.get(url)
+        if response.status_code != 200:
+            st.warning(f"API bağlantısı başarısız. Kod: {response.status_code}")
+            return 104.680  # Yedek sabit değer
+
+        data = response.json()
+        if "result" not in data:
+            st.warning("API'den beklenen veri gelmedi.")
+            st.json(data)  # Ham veriyi göster
+            return 104.680
+
+        usd_per_ounce = data["result"]
         usd_per_kg = usd_per_ounce * 32.1507
         return round(usd_per_kg, 3)
-    except:
-        return 104.680  # Yedek sabit değer
+    except Exception as e:
+        st.error(f"API Hatası: {e}")
+        return 104.680
 
-# Otomatik USD/KG fiyatı al
+# USD/KG fiyatını al
 usd_kg_otomatik = get_usd_kg_birebir()
 
 # Kullanıcıya gösterilen fiyat kutusu
@@ -37,10 +48,10 @@ if st.button("USD/KG Güncelle"):
     st.cache_data.clear()
     st.rerun()
 
-# NOT: Eskiden 1000’e bölünüyordu, artık doğrudan kullanılıyor
-gram_altin = usd_kg_satis  # Yani doğrudan USD/KG fiyatı
+# Gram altın hesabı
+gram_altin = usd_kg_satis  # Doğrudan USD/KG fiyatı
 
-# Diğer kullanıcı girişleri
+# Kullanıcı girişleri
 altin_gram = st.number_input("Altın Gram", value=1.0, step=1.0)
 saflik = st.number_input("Saflık (Milyem)", value=0.585, step=0.001, format="%.3f")
 iscilik = st.number_input("İşçilik (Milyem)", value=0.035, step=0.001, format="%.3f")
