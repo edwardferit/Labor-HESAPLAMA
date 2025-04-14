@@ -14,7 +14,7 @@ except:
 
 st.title("Altın Hesaplama")
 
-# --- Altın Fiyatı: Ons → USD → KG (exchangerate.host, API keysiz) ---
+# --- Altın Fiyatı: Ons → USD → KG (API keysiz + JSON debug) ---
 @st.cache_data(ttl=300)
 def get_usd_kg():
     try:
@@ -22,7 +22,9 @@ def get_usd_kg():
         response = requests.get(url)
         data = response.json()
 
-        # st.json(data)  # istersen debug için açabilirsin
+        # DEBUG: API yanıtını kullanıcıya göster
+        st.subheader("Altın API Yanıtı")
+        st.json(data)
 
         if "result" not in data:
             st.warning("Altın fiyatı alınamadı (result bulunamadı).")
@@ -35,7 +37,7 @@ def get_usd_kg():
         st.error(f"Altın fiyatı alınamadı: {e}")
         return 104.680
 
-# --- USD → TRY Kuru (API key gerekmez) ---
+# --- USD → TRY Kuru ---
 @st.cache_data(ttl=300)
 def get_usd_to_try():
     try:
@@ -46,11 +48,11 @@ def get_usd_to_try():
     except:
         return 32.00
 
-# Verileri al
+# Verileri çek
 usd_kg_otomatik = get_usd_kg()
 usd_to_try = get_usd_to_try()
 
-# USD/KG Satış Fiyatı Girişi
+# USD/KG satış fiyatı
 usd_kg_satis = st.number_input(
     "USD/KG Satış Fiyatı",
     value=usd_kg_otomatik,
@@ -58,7 +60,7 @@ usd_kg_satis = st.number_input(
     format="%.3f"
 )
 
-# Güncelleme butonu
+# Yenileme butonu
 if st.button("USD/KG Güncelle"):
     st.cache_data.clear()
     st.rerun()
@@ -68,13 +70,13 @@ altin_gram = st.number_input("Altın Gram", value=1.0, step=1.0)
 saflik = st.number_input("Saflık (Milyem)", value=0.585, step=0.001, format="%.3f")
 iscilik = st.number_input("İşçilik (Milyem)", value=0.035, step=0.001, format="%.3f")
 
-# USD Hesaplamalar
+# Hesaplamalar (USD)
 gram_altin = usd_kg_satis
 sadece_iscilik = iscilik * gram_altin
 iscilik_dahil_fiyat = (saflik + iscilik) * gram_altin
 toplam_fiyat_usd = iscilik_dahil_fiyat * altin_gram
 
-# TL Hesaplamalar
+# Hesaplamalar (TL)
 sadece_iscilik_tl = sadece_iscilik * usd_to_try
 iscilik_dahil_fiyat_tl = iscilik_dahil_fiyat * usd_to_try
 toplam_fiyat_tl = toplam_fiyat_usd * usd_to_try
