@@ -37,9 +37,8 @@ if st.button("USD/KG Güncelle"):
     st.cache_data.clear()
     st.rerun()
 
-# Gram altın USD fiyatı
-gram_altin = usd_kg_satis / 1000
-st.write(f"Gram Altın Fiyatı (USD): **{gram_altin:.3f}**")
+# NOT: Eskiden 1000’e bölünüyordu, artık doğrudan kullanılıyor
+gram_altin = usd_kg_satis  # Yani doğrudan USD/KG fiyatı
 
 # Diğer kullanıcı girişleri
 altin_gram = st.number_input("Altın Gram", value=1.0, step=1.0)
