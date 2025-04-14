@@ -14,31 +14,22 @@ except:
 
 st.title("Altın Hesaplama")
 
-# USD/KG verisini çeken fonksiyon (debug'lu)
+# USD/KG verisini çeken fonksiyon (metals.live)
 @st.cache_data(ttl=300)
-def get_usd_kg_birebir():
+def get_usd_kg_metalslive():
     try:
-        url = "https://api.exchangerate.host/convert?from=XAU&to=USD"
+        url = "https://metals.live/api/spot/gold"
         response = requests.get(url)
-        if response.status_code != 200:
-            st.warning(f"API bağlantısı başarısız. Kod: {response.status_code}")
-            return 104.680  # Yedek sabit değer
-
         data = response.json()
-        if "result" not in data:
-            st.warning("API'den beklenen veri gelmedi.")
-            st.json(data)  # Ham veriyi göster
-            return 104.680
-
-        usd_per_ounce = data["result"]
-        usd_per_kg = usd_per_ounce * 32.1507
+        latest_ounce_price = data[0][1]  # En güncel ons fiyatı (USD)
+        usd_per_kg = latest_ounce_price * 32.1507  # 1 kg = 32.1507 ons
         return round(usd_per_kg, 3)
     except Exception as e:
-        st.error(f"API Hatası: {e}")
-        return 104.680
+        st.error(f"Altın fiyatı çekilemedi: {e}")
+        return 104.680  # Sabit fallback değer
 
 # USD/KG fiyatını al
-usd_kg_otomatik = get_usd_kg_birebir()
+usd_kg_otomatik = get_usd_kg_metalslive()
 
 # Kullanıcıya gösterilen fiyat kutusu
 usd_kg_satis = st.number_input("USD/KG Satış Fiyatı (otomatik veya manuel)", value=usd_kg_otomatik, step=0.001, format="%.3f")
@@ -48,8 +39,8 @@ if st.button("USD/KG Güncelle"):
     st.cache_data.clear()
     st.rerun()
 
-# Gram altın hesabı
-gram_altin = usd_kg_satis  # Doğrudan USD/KG fiyatı
+# Gram altın fiyatı hesaplanacak
+gram_altin = usd_kg_satis  # Doğrudan USD/KG fiyatı kullanılıyor
 
 # Kullanıcı girişleri
 altin_gram = st.number_input("Altın Gram", value=1.0, step=1.0)
