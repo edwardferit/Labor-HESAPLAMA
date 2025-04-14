@@ -1,25 +1,47 @@
 
 import streamlit as st
 from PIL import Image
+import requests
 
 st.set_page_config(page_title="Altın Hesaplama", layout="centered")
 
 # Logo göster
-logo = Image.open("Siyah-PNG.png")
-st.image(logo, use_container_width=True)
+try:
+    logo = Image.open("Siyah-PNG.png")
+    st.image(logo, use_container_width=True)
+except:
+    st.warning("Logo yüklenemedi. Dosya adı doğru mu?")
 
 st.title("Altın Hesaplama")
 
-# Otomatik USD/KG fiyatı (örnek değer - dış veri kaynağı yerine sabit)
-usd_kg_otomatik = 104680  # Bu değer dış siteden çekilmiş gibi kullanılacak
+# USD/KG verisini çeken fonksiyon
+@st.cache_data(ttl=300)
+def get_usd_kg_birebir():
+    try:
+        url = "https://api.exchangerate.host/convert?from=XAU&to=USD"
+        response = requests.get(url).json()
+        usd_per_ounce = response["result"]
+        usd_per_kg = usd_per_ounce * 32.1507
+        return round(usd_per_kg, 3)
+    except:
+        return 104.680  # Yedek sabit değer
 
-# Kullanıcı isterse düzenleyebilir
-usd_kg_satis = st.number_input("USD/KG Satış Fiyatı (otomatik veya manuel)", value=usd_kg_otomatik)
+# Otomatik USD/KG fiyatı al
+usd_kg_otomatik = get_usd_kg_birebir()
+
+# Kullanıcıya gösterilen fiyat kutusu
+usd_kg_satis = st.number_input("USD/KG Satış Fiyatı (otomatik veya manuel)", value=usd_kg_otomatik, step=0.001, format="%.3f")
+
+# Güncelleme butonu
+if st.button("USD/KG Güncelle"):
+    st.cache_data.clear()
+    st.rerun()
+
+# Gram altın USD fiyatı
 gram_altin = usd_kg_satis / 1000
-
 st.write(f"Gram Altın Fiyatı (USD): **{gram_altin:.3f}**")
 
-# Diğer girişler
+# Diğer kullanıcı girişleri
 altin_gram = st.number_input("Altın Gram", value=1.0, step=1.0)
 saflik = st.number_input("Saflık (Milyem)", value=0.585, step=0.001, format="%.3f")
 iscilik = st.number_input("İşçilik (Milyem)", value=0.035, step=0.001, format="%.3f")
