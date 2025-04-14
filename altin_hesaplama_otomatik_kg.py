@@ -14,31 +14,28 @@ except:
 
 st.title("Altın Hesaplama")
 
-# --- Altın Fiyatı: metals.dev üzerinden (debug'lu) ---
+# --- Altın Fiyatı: Ons → USD → KG (exchangerate.host, API keysiz) ---
 @st.cache_data(ttl=300)
 def get_usd_kg():
     try:
-        api_key = "NALXZR2TRJAAQSKIFUKE975KIFUKE"  # Senin API key'in
-        url = f"https://api.metals.dev/v1/latest?base=XAU&quote=USD&api_key={api_key}"
+        url = "https://api.exchangerate.host/convert?from=XAU&to=USD"
         response = requests.get(url)
         data = response.json()
 
-        # JSON veriyi ekranda göster (debug)
-        st.subheader("API'den Gelen Veri")
-        st.json(data)
+        # st.json(data)  # istersen debug için açabilirsin
 
-        if "result" not in data or "rate" not in data["result"]:
-            st.warning("API yanıtı beklenen formatta değil.")
+        if "result" not in data:
+            st.warning("Altın fiyatı alınamadı (result bulunamadı).")
             return 104.680
 
-        usd_per_ounce = data["result"]["rate"]
+        usd_per_ounce = data["result"]
         usd_per_kg = usd_per_ounce * 32.1507
         return round(usd_per_kg, 3)
     except Exception as e:
         st.error(f"Altın fiyatı alınamadı: {e}")
         return 104.680
 
-# --- USD -> TRY kuru: exchangerate.host ---
+# --- USD → TRY Kuru (API key gerekmez) ---
 @st.cache_data(ttl=300)
 def get_usd_to_try():
     try:
@@ -53,7 +50,7 @@ def get_usd_to_try():
 usd_kg_otomatik = get_usd_kg()
 usd_to_try = get_usd_to_try()
 
-# USD/KG Fiyatı Göster
+# USD/KG Satış Fiyatı Girişi
 usd_kg_satis = st.number_input(
     "USD/KG Satış Fiyatı",
     value=usd_kg_otomatik,
@@ -61,7 +58,7 @@ usd_kg_satis = st.number_input(
     format="%.3f"
 )
 
-# Manuel güncelleme
+# Güncelleme butonu
 if st.button("USD/KG Güncelle"):
     st.cache_data.clear()
     st.rerun()
