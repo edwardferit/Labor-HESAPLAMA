@@ -12,15 +12,16 @@ try:
 except:
     st.warning("Logo yüklenemedi.")
 
-# --- Altın Fiyatı: metals.dev üzerinden (API key gerekiyor) ---
+st.title("Altın Hesaplama")
+
+# --- Altın Fiyatı: metals.dev API ---
 @st.cache_data(ttl=300)
 def get_usd_kg():
     try:
-        api_key = "NALXZR2TRJAAQSKIFUKE975KIFUKE"  # kendi key'in
+        api_key = "NALXZR2TRJAAQSKIFUKE975KIFUKE"  # Buraya kendi API key'ini yaz
         url = f"https://api.metals.dev/v1/latest?base=XAU&quote=USD&api_key={api_key}"
         response = requests.get(url)
         data = response.json()
-
         usd_per_ounce = data["result"]["rate"]
         usd_per_kg = usd_per_ounce * 32.1507
         return round(usd_per_kg, 3)
@@ -28,7 +29,7 @@ def get_usd_kg():
         st.error(f"Altın fiyatı alınamadı: {e}")
         return 104.680
 
-# --- USD -> TRY Kuru: exchangerate.host (API key gerektirmez) ---
+# --- USD -> TRY kuru: exchangerate.host ---
 @st.cache_data(ttl=300)
 def get_usd_to_try():
     try:
@@ -39,15 +40,19 @@ def get_usd_to_try():
     except:
         return 32.00
 
-# Verileri çek
+# Verileri al
 usd_kg_otomatik = get_usd_kg()
 usd_to_try = get_usd_to_try()
 
-# Başlık
-st.title("Altın Hesaplama")
+# USD/KG Satış Fiyatı Göster
+usd_kg_satis = st.number_input(
+    "USD/KG Satış Fiyatı",
+    value=usd_kg_otomatik,
+    step=0.001,
+    format="%.3f"
+)
 
-# USD/KG Fiyatı Göster
-usd_kg_satis = st.number_input("USD/KG Satış Fiyatı", value=usd_kg_otomatik, step=0.001, format="%.3f")
+# Manuel güncelleme
 if st.button("USD/KG Güncelle"):
     st.cache_data.clear()
     st.rerun()
@@ -57,7 +62,7 @@ altin_gram = st.number_input("Altın Gram", value=1.0, step=1.0)
 saflik = st.number_input("Saflık (Milyem)", value=0.585, step=0.001, format="%.3f")
 iscilik = st.number_input("İşçilik (Milyem)", value=0.035, step=0.001, format="%.3f")
 
-# Hesaplamalar (USD)
+# USD Hesaplamalar
 gram_altin = usd_kg_satis
 sadece_iscilik = iscilik * gram_altin
 iscilik_dahil_fiyat = (saflik + iscilik) * gram_altin
