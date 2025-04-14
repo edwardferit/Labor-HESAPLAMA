@@ -14,14 +14,23 @@ except:
 
 st.title("Altın Hesaplama")
 
-# --- Altın Fiyatı: metals.dev API ---
+# --- Altın Fiyatı: metals.dev üzerinden (debug'lu) ---
 @st.cache_data(ttl=300)
 def get_usd_kg():
     try:
-        api_key = "NALXZR2TRJAAQSKIFUKE975KIFUKE"  # Buraya kendi API key'ini yaz
+        api_key = "NALXZR2TRJAAQSKIFUKE975KIFUKE"  # Senin API key'in
         url = f"https://api.metals.dev/v1/latest?base=XAU&quote=USD&api_key={api_key}"
         response = requests.get(url)
         data = response.json()
+
+        # JSON veriyi ekranda göster (debug)
+        st.subheader("API'den Gelen Veri")
+        st.json(data)
+
+        if "result" not in data or "rate" not in data["result"]:
+            st.warning("API yanıtı beklenen formatta değil.")
+            return 104.680
+
         usd_per_ounce = data["result"]["rate"]
         usd_per_kg = usd_per_ounce * 32.1507
         return round(usd_per_kg, 3)
@@ -44,7 +53,7 @@ def get_usd_to_try():
 usd_kg_otomatik = get_usd_kg()
 usd_to_try = get_usd_to_try()
 
-# USD/KG Satış Fiyatı Göster
+# USD/KG Fiyatı Göster
 usd_kg_satis = st.number_input(
     "USD/KG Satış Fiyatı",
     value=usd_kg_otomatik,
