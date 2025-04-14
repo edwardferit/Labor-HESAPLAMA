@@ -14,17 +14,24 @@ except:
 
 st.title("Altın Hesaplama")
 
-# USD/KG verisini çeken fonksiyon (goldprice.org)
+# USD/KG verisini çeken fonksiyon (altin.org üzerinden, yanıt kontrolü dahil)
 @st.cache_data(ttl=300)
 def get_usd_kg_altin_org():
     try:
         url = "https://data-asg.goldprice.org/dbXRates/USD"
         response = requests.get(url)
+
+        # Boş yanıt veya başarısız bağlantı kontrolü
+        if response.status_code != 200 or not response.text.strip():
+            st.warning("Altın fiyatı alınamadı (sunucudan boş ya da geçersiz yanıt).")
+            return 104.680
+
         data = response.json()
-        xau_per_ounce = data["items"][0]["xauPrice"]  # Ons cinsinden altın fiyatı (USD)
+        xau_per_ounce = data["items"][0]["xauPrice"]  # Ons cinsinden altın fiyatı
         gram_price = xau_per_ounce / 31.1035  # USD/gram
         usd_per_kg = gram_price * 1000  # USD/kg
         return round(usd_per_kg, 3)
+
     except Exception as e:
         st.error(f"Altın fiyatı çekilemedi: {e}")
         return 104.680  # Yedek sabit değer
@@ -33,7 +40,12 @@ def get_usd_kg_altin_org():
 usd_kg_otomatik = get_usd_kg_altin_org()
 
 # Kullanıcıya gösterilen fiyat kutusu
-usd_kg_satis = st.number_input("USD/KG Satış Fiyatı (otomatik veya manuel)", value=usd_kg_otomatik, step=0.001, format="%.3f")
+usd_kg_satis = st.number_input(
+    "USD/KG Satış Fiyatı (otomatik veya manuel)",
+    value=usd_kg_otomatik,
+    step=0.001,
+    format="%.3f"
+)
 
 # Güncelleme butonu
 if st.button("USD/KG Güncelle"):
@@ -41,7 +53,7 @@ if st.button("USD/KG Güncelle"):
     st.rerun()
 
 # Hesaplama kısmı
-gram_altin = usd_kg_satis  # Doğrudan USD/KG fiyatı
+gram_altin = usd_kg_satis
 
 # Kullanıcı girişleri
 altin_gram = st.number_input("Altın Gram", value=1.0, step=1.0)
