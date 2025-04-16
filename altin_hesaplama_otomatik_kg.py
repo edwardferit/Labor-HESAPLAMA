@@ -13,7 +13,7 @@ except:
 st.title("Altın Hesaplama")
 
 # USD/KG fiyat girişi (manuel)
-usd_kg_satis = st.number_input("USD/KG Satış Fiyatı", value=104.680, step=0.001, format="%.3f")
+usd_kg_satis = st.number_input("USD/KG Satış Fiyatı", value=108.000, step=0.001, format="%.3f")
 
 # Kullanıcı girişleri
 altin_gram = st.number_input("Altın Gram", value=1.0, step=1.0)
